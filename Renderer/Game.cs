@@ -18,9 +18,6 @@ namespace Renderer
         private Model model;
         private Camera camera;
 
-        private float yaw;
-        private float pitch;
-        private float zoom = 45.0f;
         private bool firstMove = true;
         private Vector2 lastMousePosition;
 
@@ -78,15 +75,12 @@ namespace Renderer
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+            var modelMatrix = Matrix4.CreateTranslation(-model.Center);
+
             shader.Use();
-
-            var modelMatrix = Matrix4.CreateRotationY(yaw) * Matrix4.CreateRotationX(pitch);
-            var viewMatrix = Matrix4.LookAt(new Vector3(0, 0, 5), Vector3.Zero, Vector3.UnitY);
-            var projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(zoom), (float)Size.X / Size.Y, 0.1f, 100.0f);
-
             shader.SetMatrix4("model", modelMatrix);
-            shader.SetMatrix4("view", viewMatrix);
-            shader.SetMatrix4("projection", projectionMatrix);
+            shader.SetMatrix4("view", camera.GetViewMatrix());
+            shader.SetMatrix4("projection", camera.GetProjectionMatrix((float)Size.X / Size.Y));
 
             GL.BindVertexArray(model.Vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, model.VertexCount);
@@ -109,8 +103,7 @@ namespace Renderer
                 {
                     var deltaX = MouseState.X - lastMousePosition.X;
                     var deltaY = MouseState.Y - lastMousePosition.Y;
-                    yaw += deltaX * 0.01f;
-                    pitch -= deltaY * 0.01f;
+                    camera.Update(deltaX, deltaY);
                     lastMousePosition = new Vector2(MouseState.X, MouseState.Y);
                 }
             }
@@ -123,9 +116,9 @@ namespace Renderer
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
-            zoom -= e.OffsetY;
-            if (zoom < 1.0f) zoom = 1.0f;
-            if (zoom > 45.0f) zoom = 45.0f;
+            camera.Distance -= e.OffsetY;
+            if (camera.Distance < 2.0f) camera.Distance = 2.0f;
+            if (camera.Distance > 50.0f) camera.Distance = 50.0f;
         }
 
         protected override void OnResize(ResizeEventArgs e)

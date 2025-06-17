@@ -10,6 +10,7 @@ namespace Renderer.Graphics
     {
         public int Vao { get; }
         public int VertexCount { get; }
+        public Vector3 Center { get; }
 
         public Model(Stream modelStream)
         {
@@ -41,6 +42,19 @@ namespace Renderer.Graphics
                     }
                 }
             }
+
+            var min = new Vector3(float.MaxValue);
+            var max = new Vector3(float.MinValue);
+            foreach (var vertex in vertices)
+            {
+                min.X = Math.Min(min.X, vertex.X);
+                min.Y = Math.Min(min.Y, vertex.Y);
+                min.Z = Math.Min(min.Z, vertex.Z);
+                max.X = Math.Max(max.X, vertex.X);
+                max.Y = Math.Max(max.Y, vertex.Y);
+                max.Z = Math.Max(max.Z, vertex.Z);
+            }
+            Center = (min + max) / 2.0f;
 
             var finalVertices = new List<Vector3>();
             foreach (var face in faces)
