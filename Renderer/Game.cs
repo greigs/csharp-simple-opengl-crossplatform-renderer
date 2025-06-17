@@ -26,6 +26,8 @@ namespace Renderer
         public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
         {
+            UpdateFrequency = 60.0;
+            Title = "Renderer";
         }
 
         private static Stream GetResourceStream(string resourceName)
