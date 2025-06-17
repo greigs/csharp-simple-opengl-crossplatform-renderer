@@ -14,9 +14,9 @@ namespace Renderer
 {
     public class Game : GameWindow
     {
-        private Shader shader;
-        private Model model;
-        private Camera camera;
+        private Shader? shader;
+        private Model? model;
+        private Camera? camera;
 
         private float rotationAngle = 0.0f;
 
@@ -77,15 +77,18 @@ namespace Renderer
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            var modelMatrix = Matrix4.CreateRotationY(rotationAngle) * Matrix4.CreateTranslation(-model.Center);
+            var modelMatrix = Matrix4.CreateRotationY(rotationAngle) * Matrix4.CreateTranslation(-model!.Center);
+            if (shader == null) throw new Exception("Shader is null");
+            if (model == null) throw new Exception("Model is null");
+            if (camera == null) throw new Exception("Camera is null");
 
-            shader.Use();
-            shader.SetMatrix4("model", modelMatrix);
-            shader.SetMatrix4("view", camera.GetViewMatrix());
-            shader.SetMatrix4("projection", camera.GetProjectionMatrix((float)Size.X / Size.Y));
+            shader!.Use();
+            shader!.SetMatrix4("model", modelMatrix);
+            shader!.SetMatrix4("view", camera.GetViewMatrix());
+            shader!.SetMatrix4("projection", camera.GetProjectionMatrix((float)Size.X / Size.Y));
 
-            GL.BindVertexArray(model.Vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, model.VertexCount);
+            GL.BindVertexArray(model!.Vao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, model!.VertexCount);
 
             SwapBuffers();
         }
@@ -107,7 +110,7 @@ namespace Renderer
                 {
                     var deltaX = MouseState.X - lastMousePosition.X;
                     var deltaY = MouseState.Y - lastMousePosition.Y;
-                    camera.Update(deltaX, deltaY);
+                    camera!.Update(deltaX, deltaY);
                     lastMousePosition = new Vector2(MouseState.X, MouseState.Y);
                 }
             }
@@ -120,9 +123,9 @@ namespace Renderer
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
-            camera.Distance -= e.OffsetY;
-            if (camera.Distance < 2.0f) camera.Distance = 2.0f;
-            if (camera.Distance > 50.0f) camera.Distance = 50.0f;
+            camera!.Distance -= e.OffsetY;
+            if (camera!.Distance < 2.0f) camera!.Distance = 2.0f;
+            if (camera!.Distance > 50.0f) camera!.Distance = 50.0f;
         }
 
         protected override void OnResize(ResizeEventArgs e)

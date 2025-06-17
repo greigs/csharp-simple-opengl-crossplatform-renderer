@@ -20,7 +20,7 @@ namespace Renderer.Graphics
             using (StreamReader reader = new StreamReader(modelStream))
             {
                 string line;
-                while ((line = reader.ReadLine()) != null)
+                while ((line = reader.ReadLine()!) != null)
                 {
                     string[] parts = line.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length == 0) continue;

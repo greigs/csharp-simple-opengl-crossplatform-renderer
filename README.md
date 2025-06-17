@@ -1,6 +1,6 @@
 # 3D Teapot Renderer
 
-This project is a simple 3D renderer built with C# and OpenTK. It displays the Stanford Teapot model, which can be rotated and zoomed using the mouse. The application is cross-platform and can be built for Windows, macOS (Intel), and macOS (Apple Silicon). The resulting packaged applications include .net 6.0 already embedded, so it should run even if .net is not installed.
+This project is a simple 3D renderer built with C# and OpenTK. It displays the Stanford Teapot model, which can be rotated and zoomed using the mouse. The application is cross-platform and can be built for Windows, macOS (Intel), and macOS (Apple Silicon). The resulting packaged applications include .net 8.0 already embedded, so it should run even if .net is not installed.
 
 ![image](https://github.com/user-attachments/assets/731fae41-1283-4ed4-b8bb-045c1232eaec)
 
@@ -30,7 +30,7 @@ This entire process repeats every frame, allowing for smooth animation and inter
 
 ## Prerequisites
 
-*   [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) or later.
+*   [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later.
 *   To package the macOS `.dmg` file, you will need access to a macOS machine.
 
 ## Build Process
@@ -43,7 +43,7 @@ To build the application, run the following command from the root of the project
 ./build.ps1
 ```
 
-This script will compile the renderer and place the build artifacts in the `Renderer/bin/Release/net6.0/` directory, organized by platform:
+This script will compile the renderer and place the build artifacts in the `Renderer/bin/Release/net8.0/` directory, organized by platform:
 
 *   **Windows:** `win-x64/publish/` - Contains the `Renderer.exe` and required `glfw3.dll`.
 *   **macOS (Intel):** `osx-x64/publish/` - Contains the `Renderer.app` bundle.
@@ -53,7 +53,7 @@ This script will compile the renderer and place the build artifacts in the `Rend
 
 ### Windows
 
-To distribute the Windows version, simply zip the entire contents of the `Renderer/bin/Release/net6.0/win-x64/publish/` directory.
+To distribute the Windows version, simply zip the entire contents of the `Renderer/bin/Release/net8.0/win-x64/publish/` directory.
 
 ### macOS
 
@@ -70,7 +70,7 @@ sh package-mac.sh
 
 This script will find the `Renderer.app` bundles and create distributable disk images for each architecture:
 
-*   `Renderer/bin/Release/net6.0/osx-x64/publish/Renderer-x64.dmg`
-*   `Renderer/bin/Release/net6.0/osx-arm64/publish/Renderer-arm64.dmg`
+*   `Renderer/bin/Release/net8.0/osx-x64/publish/Renderer-x64.dmg`
+*   `Renderer/bin/Release/net8.0/osx-arm64/publish/Renderer-arm64.dmg`
 
 These `.dmg` files are the final packages that you can distribute to your users. 

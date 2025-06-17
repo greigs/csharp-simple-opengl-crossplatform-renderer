@@ -8,15 +8,15 @@ $projectPath = "Renderer/Renderer.csproj"
 # --- Build for Windows (win-x64) ---
 Write-Host "Building for Windows (win-x64)..."
 dotnet publish $projectPath -r win-x64 -c Release --self-contained true /p:PublishSingleFile=true
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "Renderer/bin/Release/net6.0/win-x64/publish/Assets"
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "Renderer/bin/Release/net6.0/win-x64/publish/Shaders"
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "Renderer/bin/Release/net8.0/win-x64/publish/Assets"
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "Renderer/bin/Release/net8.0/win-x64/publish/Shaders"
 
 # --- Function to create macOS .app bundle ---
 function Create-MacAppBundle {
     param (
         [string]$runtimeId
     )
-    $publishDir = "Renderer/bin/Release/net6.0/$runtimeId/publish"
+    $publishDir = "Renderer/bin/Release/net8.0/$runtimeId/publish"
     $appName = "Renderer"
     $appBundleName = "$appName.app"
     $appBundlePath = "$publishDir/$appBundleName"
@@ -57,6 +57,6 @@ dotnet publish $projectPath -r osx-arm64 -c Release --self-contained true
 Create-MacAppBundle -runtimeId "osx-arm64"
 
 Write-Host "Build process completed successfully."
-Write-Host "You can find the build artifacts in the 'Renderer/bin/Release/net6.0' directory."
+Write-Host "You can find the build artifacts in the 'Renderer/bin/Release/net8.0' directory."
 Write-Host "Windows: win-x64/publish"
 Write-Host "macOS: osx-x64/publish/Renderer.app and osx-arm64/publish/Renderer.app" 
