@@ -1,15 +1,17 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using OpenTK.WinForms;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 using Renderer.Graphics;
-using Renderer.Math;
 
 namespace Renderer;
 
 public class Form1 : Form
 {
-    private PictureBox pictureBox;
-    private System.Windows.Forms.Timer timer;
+    private GLControl glControl;
+    private Shader shader;
     private Model model;
     private Camera camera;
 
@@ -17,89 +19,93 @@ public class Form1 : Form
     private float pitch = 0;
     private float zoom = 5;
     private Point lastMousePosition;
+    private bool firstMove = true;
 
     public Form1()
     {
         this.Text = "3D Renderer";
         this.Size = new Size(800, 600);
 
-        pictureBox = new PictureBox();
-        pictureBox.Dock = DockStyle.Fill;
-        this.Controls.Add(pictureBox);
+        glControl = new GLControl();
+        glControl.Dock = DockStyle.Fill;
+        this.Controls.Add(glControl);
 
-        model = new Model();
-        model.Load("Assets/teapot.obj");
+        glControl.Load += GlControl_Load;
+        glControl.Paint += GlControl_Paint;
+        glControl.Resize += GlControl_Resize;
 
+        glControl.MouseDown += GlControl_MouseDown;
+        glControl.MouseMove += GlControl_MouseMove;
+        glControl.MouseWheel += GlControl_MouseWheel;
+    }
+
+    private void GlControl_Load(object sender, EventArgs e)
+    {
+        GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        GL.Enable(EnableCap.DepthTest);
+
+        shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
+        model = new Model("Assets/teapot.obj");
         camera = new Camera();
-
-        timer = new System.Windows.Forms.Timer();
-        timer.Interval = 16; // ~60 FPS
-        timer.Tick += (s, e) => pictureBox.Invalidate();
-        timer.Start();
-
-        pictureBox.Paint += PictureBox_Paint;
-        pictureBox.MouseDown += PictureBox_MouseDown;
-        pictureBox.MouseMove += PictureBox_MouseMove;
-        pictureBox.MouseWheel += PictureBox_MouseWheel;
     }
 
-    private void PictureBox_MouseDown(object sender, MouseEventArgs e)
+    private void GlControl_Resize(object sender, EventArgs e)
+    {
+        GL.Viewport(0, 0, glControl.Width, glControl.Height);
+    }
+
+    private void GlControl_MouseDown(object sender, MouseEventArgs e)
+    {
+        lastMousePosition = e.Location;
+        firstMove = true;
+    }
+
+    private void GlControl_MouseMove(object sender, MouseEventArgs e)
     {
         if (e.Button == MouseButtons.Left)
         {
-            lastMousePosition = e.Location;
-        }
-    }
-
-    private void PictureBox_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (e.Button == MouseButtons.Left)
-        {
-            float deltaX = e.X - lastMousePosition.X;
-            float deltaY = e.Y - lastMousePosition.Y;
-
-            yaw += deltaX * 0.01f;
-            pitch += deltaY * 0.01f;
-
-            lastMousePosition = e.Location;
-        }
-    }
-
-    private void PictureBox_MouseWheel(object sender, MouseEventArgs e)
-    {
-        zoom -= e.Delta * 0.001f;
-        if (zoom < 1) zoom = 1;
-        if (zoom > 20) zoom = 20;
-    }
-
-    private void PictureBox_Paint(object sender, PaintEventArgs e)
-    {
-        e.Graphics.Clear(Color.Black);
-
-        Matrix4x4 rotation = Matrix4x4.CreateRotationY(yaw) * Matrix4x4.CreateRotationX(pitch);
-        camera.Position = Matrix4x4.Transform(new Vector3(0, 0, zoom), rotation);
-
-        Matrix4x4 view = camera.GetViewMatrix();
-        Matrix4x4 projection = Matrix4x4.CreatePerspectiveFieldOfView((float)System.Math.PI / 4, (float)pictureBox.Width / pictureBox.Height, 0.1f, 100f);
-        Matrix4x4 transform = view * projection;
-
-        foreach (var face in model.Faces)
-        {
-            for (int i = 0; i < face.Length; i++)
+            if (firstMove)
             {
-                Vector3 v1 = model.Vertices[face[i]];
-                Vector3 v2 = model.Vertices[face[(i + 1) % face.Length]];
-
-                Vector3 p1 = Matrix4x4.Transform(v1, transform);
-                Vector3 p2 = Matrix4x4.Transform(v2, transform);
-
-                float x1 = (p1.X + 1) * 0.5f * pictureBox.Width;
-                float y1 = (1 - (p1.Y + 1) * 0.5f) * pictureBox.Height;
-                float x2 = (p2.X + 1) * 0.5f * pictureBox.Width;
-                float y2 = (1 - (p2.Y + 1) * 0.5f) * pictureBox.Height;
-
-                e.Graphics.DrawLine(Pens.White, x1, y1, x2, y2);
+                lastMousePosition = e.Location;
+                firstMove = false;
+            }
+            else
+            {
+                var deltaX = e.X - lastMousePosition.X;
+                var deltaY = e.Y - lastMousePosition.Y;
+                yaw += deltaX * 0.01f;
+                pitch -= deltaY * 0.01f;
+                lastMousePosition = e.Location;
+                glControl.Invalidate();
             }
         }
+    }
+
+    private void GlControl_MouseWheel(object sender, MouseEventArgs e)
+    {
+        zoom -= e.Delta * 0.01f;
+        if (zoom < 1.0f) zoom = 1.0f;
+        if (zoom > 45.0f) zoom = 45.0f;
+        glControl.Invalidate();
+    }
+
+    private void GlControl_Paint(object sender, PaintEventArgs e)
+    {
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+        shader.Use();
+
+        var modelMatrix = Matrix4.CreateRotationY(yaw) * Matrix4.CreateRotationX(pitch);
+        var viewMatrix = Matrix4.LookAt(new Vector3(0, 0, zoom), Vector3.Zero, Vector3.UnitY);
+        var projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)glControl.Width / glControl.Height, 0.1f, 100.0f);
+
+        shader.SetMatrix4("model", modelMatrix);
+        shader.SetMatrix4("view", viewMatrix);
+        shader.SetMatrix4("projection", projectionMatrix);
+
+        GL.BindVertexArray(model.Vao);
+        GL.DrawArrays(PrimitiveType.Triangles, 0, model.VertexCount);
+
+        glControl.SwapBuffers();
     }
 }

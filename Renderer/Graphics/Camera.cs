@@ -1,4 +1,4 @@
-using Renderer.Math;
+using OpenTK.Mathematics;
 
 namespace Renderer.Graphics
 {
@@ -11,13 +11,13 @@ namespace Renderer.Graphics
         public Camera()
         {
             Position = new Vector3(0, 0, 10);
-            Target = new Vector3(0, 0, 0);
-            Up = new Vector3(0, 1, 0);
+            Target = Vector3.Zero;
+            Up = Vector3.UnitY;
         }
 
-        public Matrix4x4 GetViewMatrix()
+        public Matrix4 GetViewMatrix()
         {
-            return Matrix4x4.LookAt(Position, Target, Up);
+            return Matrix4.LookAt(Position, Target, Up);
         }
     }
 } 
