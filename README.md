@@ -7,6 +7,10 @@ This project is a simple 3D renderer built with C# and OpenTK. It displays the S
 ![image](https://github.com/user-attachments/assets/57a9a757-c025-44a6-93a2-44b683e1ef83)
 
 
+https://github.com/user-attachments/assets/7515f9a1-5bb7-4228-bc1f-3e3be68f912a
+
+
+
 ## How it Works
 
 The renderer uses OpenTK, a C# wrapper for the OpenGL graphics API, to achieve hardware-accelerated rendering. The core of the process involves a programmable pipeline using shaders.
