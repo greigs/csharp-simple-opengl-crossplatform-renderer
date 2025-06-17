@@ -7,8 +7,8 @@ set -e
 # --- Configuration ---
 APP_NAME="Renderer"
 VOL_NAME="${APP_NAME}"
-PUBLISH_DIR_X64="Renderer/bin/Release/net6.0/osx-x64/publish"
-PUBLISH_DIR_ARM64="Renderer/bin/Release/net6.0/osx-arm64/publish"
+PUBLISH_DIR_X64="Renderer/bin/Release/net8.0/osx-x64/publish"
+PUBLISH_DIR_ARM64="Renderer/bin/Release/net8.0/osx-arm64/publish"
 DMG_PATH_X64="${PUBLISH_DIR_X64}/${APP_NAME}-x64.dmg"
 DMG_PATH_ARM64="${PUBLISH_DIR_ARM64}/${APP_NAME}-arm64.dmg"
 
