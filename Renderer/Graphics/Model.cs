@@ -3,9 +3,36 @@ using System.Globalization;
 using System.IO;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
+using System;
 
 namespace Renderer.Graphics
 {
+    public class Vector3EqualityComparer : IEqualityComparer<Vector3>
+    {
+        private readonly float _tolerance;
+
+        public Vector3EqualityComparer(float tolerance)
+        {
+            _tolerance = tolerance;
+        }
+
+        public bool Equals(Vector3 v1, Vector3 v2)
+        {
+            return Math.Abs(v1.X - v2.X) < _tolerance &&
+                   Math.Abs(v1.Y - v2.Y) < _tolerance &&
+                   Math.Abs(v1.Z - v2.Z) < _tolerance;
+        }
+
+        public int GetHashCode(Vector3 v)
+        {
+            return HashCode.Combine(
+                (int)(v.X / _tolerance),
+                (int)(v.Y / _tolerance),
+                (int)(v.Z / _tolerance)
+            );
+        }
+    }
+
     public class Model
     {
         public int Vao { get; }
@@ -44,36 +71,71 @@ namespace Renderer.Graphics
                 }
             }
 
-            var vertexNormals = new Dictionary<int, List<Vector3>>();
-            var triangleIndices = new List<uint>();
+            // Weld vertices by position
+            var uniqueVertices = new List<Vector3>();
+            var remap = new int[tempVertices.Count];
+            var positionToUniqueIndex = new Dictionary<Vector3, int>(new Vector3EqualityComparer(1e-4f));
 
-            foreach (var face in tempFaces)
+            for(int i = 0; i < tempVertices.Count; i++)
             {
-                for (int i = 0; i < face.Length - 2; i++)
+                if(positionToUniqueIndex.TryGetValue(tempVertices[i], out int uniqueIndex))
                 {
-                    var i1 = (uint)face[0];
-                    var i2 = (uint)face[i + 1];
-                    var i3 = (uint)face[i + 2];
-
-                    triangleIndices.AddRange(new[] { i1, i2, i3 });
-
-                    var v1 = tempVertices[(int)i1];
-                    var v2 = tempVertices[(int)i2];
-                    var v3 = tempVertices[(int)i3];
-                    var normal = Vector3.Cross(v2 - v1, v3 - v1).Normalized();
-
-                    if (!vertexNormals.ContainsKey((int)i1)) vertexNormals[(int)i1] = new List<Vector3>();
-                    if (!vertexNormals.ContainsKey((int)i2)) vertexNormals[(int)i2] = new List<Vector3>();
-                    if (!vertexNormals.ContainsKey((int)i3)) vertexNormals[(int)i3] = new List<Vector3>();
-
-                    vertexNormals[(int)i1].Add(normal);
-                    vertexNormals[(int)i2].Add(normal);
-                    vertexNormals[(int)i3].Add(normal);
+                    remap[i] = uniqueIndex;
+                }
+                else
+                {
+                    uniqueIndex = uniqueVertices.Count;
+                    positionToUniqueIndex.Add(tempVertices[i], uniqueIndex);
+                    uniqueVertices.Add(tempVertices[i]);
+                    remap[i] = uniqueIndex;
                 }
             }
 
+            var triangleIndices = new List<uint>();
+            foreach (var face in tempFaces)
+            {
+                if (face.Length == 3)
+                {
+                    uint i1 = (uint)remap[face[0]];
+                    uint i2 = (uint)remap[face[1]];
+                    uint i3 = (uint)remap[face[2]];
+                    triangleIndices.AddRange(new[] { i1, i2, i3 });
+                }
+                else if (face.Length == 4)
+                {
+                    uint i1 = (uint)remap[face[0]];
+                    uint i2 = (uint)remap[face[1]];
+                    uint i3 = (uint)remap[face[2]];
+                    uint i4 = (uint)remap[face[3]];
+                    triangleIndices.AddRange(new[] { i1, i2, i3 });
+                    triangleIndices.AddRange(new[] { i1, i3, i4 });
+                }
+            }
+            
+            var vertexNormals = new Dictionary<int, List<Vector3>>();
+            for (int i = 0; i < triangleIndices.Count; i += 3)
+            {
+                var i1 = (int)triangleIndices[i];
+                var i2 = (int)triangleIndices[i + 1];
+                var i3 = (int)triangleIndices[i + 2];
+
+                var v1 = uniqueVertices[i1];
+                var v2 = uniqueVertices[i2];
+                var v3 = uniqueVertices[i3];
+
+                var normal = Vector3.Cross(v2 - v1, v3 - v1).Normalized();
+
+                if (!vertexNormals.ContainsKey(i1)) vertexNormals[i1] = new List<Vector3>();
+                if (!vertexNormals.ContainsKey(i2)) vertexNormals[i2] = new List<Vector3>();
+                if (!vertexNormals.ContainsKey(i3)) vertexNormals[i3] = new List<Vector3>();
+
+                vertexNormals[i1].Add(normal);
+                vertexNormals[i2].Add(normal);
+                vertexNormals[i3].Add(normal);
+            }
+
             var vertexData = new List<float>();
-            for (int i = 0; i < tempVertices.Count; i++)
+            for (int i = 0; i < uniqueVertices.Count; i++)
             {
                 var avgNormal = Vector3.Zero;
                 if (vertexNormals.TryGetValue(i, out var normals))
@@ -81,15 +143,15 @@ namespace Renderer.Graphics
                     foreach (var n in normals) avgNormal += n;
                     avgNormal = (avgNormal / normals.Count).Normalized();
                 }
-                
-                vertexData.AddRange(new[] { tempVertices[i].X, tempVertices[i].Y, tempVertices[i].Z, avgNormal.X, avgNormal.Y, avgNormal.Z });
+
+                vertexData.AddRange(new[] { uniqueVertices[i].X, uniqueVertices[i].Y, uniqueVertices[i].Z, avgNormal.X, avgNormal.Y, avgNormal.Z });
             }
 
             ElementCount = triangleIndices.Count;
 
             var min = new Vector3(float.MaxValue);
             var max = new Vector3(float.MinValue);
-            foreach (var vertex in tempVertices)
+            foreach (var vertex in uniqueVertices)
             {
                 min.X = Math.Min(min.X, vertex.X);
                 min.Y = Math.Min(min.Y, vertex.Y);
