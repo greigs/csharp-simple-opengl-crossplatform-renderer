@@ -5,6 +5,10 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Renderer.Graphics;
+using StbImageSharp;
+using System.IO;
+using OpenTK.Windowing.Common.Input;
+using System.Reflection;
 
 namespace Renderer
 {
@@ -25,15 +29,46 @@ namespace Renderer
         {
         }
 
+        private static Stream GetResourceStream(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var fullResourceName = $"Renderer.{resourceName.Replace('/', '.')}";
+            return assembly.GetManifestResourceStream(fullResourceName) ?? throw new FileNotFoundException($"Could not find embedded resource: {fullResourceName}");
+        }
+
         protected override void OnLoad()
         {
             base.OnLoad();
 
+            // Set window icon
+            try
+            {
+                using (var stream = GetResourceStream("Assets/icon.png"))
+                {
+                    var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+                    var windowIcon = new WindowIcon(new OpenTK.Windowing.Common.Input.Image(image.Width, image.Height, image.Data));
+                    Icon = windowIcon;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Could not set window icon: {e.Message}");
+            }
+
             GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             GL.Enable(EnableCap.DepthTest);
 
-            shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
-            model = new Model("Assets/teapot.obj");
+            using (var vertStream = GetResourceStream("Shaders/shader.vert"))
+            using (var fragStream = GetResourceStream("Shaders/shader.frag"))
+            {
+                shader = new Shader(vertStream, fragStream);
+            }
+
+            using (var modelStream = GetResourceStream("Assets/teapot.obj"))
+            {
+                model = new Model(modelStream);
+            }
+            
             camera = new Camera();
         }
 

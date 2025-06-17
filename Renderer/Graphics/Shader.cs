@@ -10,21 +10,28 @@ namespace Renderer.Graphics
     {
         public readonly int Handle;
 
-        public Shader(string vertPath, string fragPath)
+        public Shader(Stream vertStream, Stream fragStream)
         {
-            var shaderSource = File.ReadAllText(vertPath);
+            string shaderSource;
+            using (var reader = new StreamReader(vertStream))
+            {
+                shaderSource = reader.ReadToEnd();
+            }
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(vertexShader, shaderSource);
 
-            shaderSource = File.ReadAllText(fragPath);
+            using (var reader = new StreamReader(fragStream))
+            {
+                shaderSource = reader.ReadToEnd();
+            }
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, shaderSource);
 
             GL.CompileShader(vertexShader);
-            GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out var success);
+            GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int success);
             if (success == 0)
             {
-                var infoLog = GL.GetShaderInfoLog(vertexShader);
+                string infoLog = GL.GetShaderInfoLog(vertexShader);
                 Console.WriteLine(infoLog);
             }
 
@@ -32,7 +39,7 @@ namespace Renderer.Graphics
             GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out success);
             if (success == 0)
             {
-                var infoLog = GL.GetShaderInfoLog(fragmentShader);
+                string infoLog = GL.GetShaderInfoLog(fragmentShader);
                 Console.WriteLine(infoLog);
             }
 

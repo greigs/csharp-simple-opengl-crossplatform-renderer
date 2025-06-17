@@ -11,12 +11,12 @@ namespace Renderer.Graphics
         public int Vao { get; }
         public int VertexCount { get; }
 
-        public Model(string path)
+        public Model(Stream modelStream)
         {
             var vertices = new List<Vector3>();
             var faces = new List<int>();
 
-            using (StreamReader reader = new StreamReader(path))
+            using (StreamReader reader = new StreamReader(modelStream))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
@@ -33,29 +33,29 @@ namespace Renderer.Graphics
                     }
                     else if (parts[0] == "f")
                     {
-                        for (int i = 0; i < parts.Length - 1; i++)
+                        for (int i = 1; i < parts.Length; i++)
                         {
-                            string[] faceParts = parts[i + 1].Split('/');
+                            string[] faceParts = parts[i].Split('/');
                             faces.Add(int.Parse(faceParts[0]) - 1);
                         }
                     }
                 }
             }
 
-            var vertexArray = new List<Vector3>();
-            foreach (var index in faces)
+            var finalVertices = new List<Vector3>();
+            foreach (var face in faces)
             {
-                vertexArray.Add(vertices[index]);
+                finalVertices.Add(vertices[face]);
             }
 
-            VertexCount = vertexArray.Count;
+            VertexCount = finalVertices.Count;
 
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
 
             int vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertexArray.Count * Vector3.SizeInBytes, vertexArray.ToArray(), BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, finalVertices.Count * Vector3.SizeInBytes, finalVertices.ToArray(), BufferUsageHint.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Vector3.SizeInBytes, 0);
             GL.EnableVertexAttribArray(0);
