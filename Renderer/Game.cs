@@ -17,8 +17,10 @@ namespace Renderer
         private Shader? shader;
         private Model? model;
         private Camera? camera;
+        private Vector3 lightPos = new Vector3(5.0f, 5.0f, 5.0f);
 
         private float rotationAngle = 0.0f;
+        private float time = 0.0f;
 
         private bool firstMove = true;
         private Vector2 lastMousePosition;
@@ -26,6 +28,8 @@ namespace Renderer
         public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
         {
+            UpdateFrequency = 60.0;
+            Title = "Renderer";
         }
 
         private static Stream GetResourceStream(string resourceName)
@@ -86,9 +90,12 @@ namespace Renderer
             shader!.SetMatrix4("model", modelMatrix);
             shader!.SetMatrix4("view", camera.GetViewMatrix());
             shader!.SetMatrix4("projection", camera.GetProjectionMatrix((float)Size.X / Size.Y));
+            shader!.SetFloat("time", time);
+            shader!.SetVector3("viewPos", camera.Position);
+            shader!.SetVector3("lightPos", lightPos);
 
             GL.BindVertexArray(model!.Vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, model!.VertexCount);
+            GL.DrawElements(PrimitiveType.Triangles, model.ElementCount, DrawElementsType.UnsignedInt, 0);
 
             SwapBuffers();
         }
@@ -98,6 +105,7 @@ namespace Renderer
             base.OnUpdateFrame(e);
 
             rotationAngle += MathHelper.DegreesToRadians(15.0f) * (float)e.Time;
+            time += (float)e.Time;
             
             if (MouseState.IsButtonDown(MouseButton.Left))
             {

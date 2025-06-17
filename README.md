@@ -10,23 +10,28 @@ This project is a simple 3D renderer built with C# and OpenTK. It displays the S
 
 The renderer uses OpenTK, a C# wrapper for the OpenGL graphics API, to achieve hardware-accelerated rendering. The core of the process involves a programmable pipeline using shaders.
 
-### 1. Asset Loading
+### 1. Asset Loading & Normal Calculation
 - The `teapot.obj` model and the GLSL shader files are embedded directly into the application executable.
-- On startup, the `Model.cs` class parses the `.obj` file's vertices and calculates the model's geometric center. This data is then uploaded to the GPU into a Vertex Buffer Object (VBO).
+- On startup, the `Model.cs` class parses the `.obj` file's vertices. Since the model file does not contain vertex normals (which are essential for lighting), they are calculated manually.
+- For each vertex, the normal is computed by averaging the surface normals of all the faces that share that vertex. This creates a smooth appearance.
+- The final vertex data, interleaved with positions and their corresponding calculated normals, is uploaded to the GPU into a Vertex Buffer Object (VBO). An Element Buffer Object (EBO) is also created to allow for efficient indexed drawing.
 
 ### 2. The Rendering Loop
 The application runs a continuous loop that performs the following steps for each frame:
 
 #### a. Transformation (The MVP Matrix)
-The position of each vertex is transformed from its local model space into its final screen position using a series of matrix multiplications. This is known as the Model-View-Projection (MVP) matrix.
-- **Model Matrix:** This matrix first translates the teapot so its geometric center is at the world origin `(0,0,0)`, ensuring it rotates around its center.
-- **View Matrix:** This is controlled by the `Camera.cs` class, which implements an orbital camera. It positions the "viewer" at a certain distance and orientation from the world origin, making it look at the teapot. Mouse movements rotate the camera around the teapot, and the scroll wheel changes its distance.
-- **Projection Matrix:** This matrix applies perspective, making parts of the model that are further away appear smaller, which creates the illusion of depth.
+The position of each vertex is transformed from its local model space into its final screen position using a series of matrix multiplications (Model-View-Projection).
+- **Model Matrix:** Translates the teapot to the world origin and applies rotation.
+- **View Matrix:** Controlled by an orbital camera (`Camera.cs`). Mouse movements rotate the camera around the teapot, and the scroll wheel changes its distance.
+- **Projection Matrix:** Applies perspective to create the illusion of depth.
 
 #### b. Shader Execution
-The MVP matrix and vertex data are passed to the shaders running on the GPU.
-- **`shader.vert` (Vertex Shader):** This program runs for every vertex in the model. Its primary job is to apply the MVP matrix transformation to each vertex's position.
-- **`shader.frag` (Fragment Shader):** After the vertices are transformed, this program runs for every pixel that the teapot covers on the screen. It determines the final color of the pixel. In this project, it's very simple: it just outputs a constant white color, giving the teapot its solid appearance.
+The MVP matrix, vertex data, and other uniforms are passed to the shaders running on the GPU.
+- **`shader.vert` (Vertex Shader):** This program runs for every vertex. It transforms the vertex position using the MVP matrix and also transforms the vertex normal into world space for lighting calculations.
+- **`shader.frag` (Fragment Shader):** This program runs for every pixel the teapot covers. It receives the world-space position and normal from the vertex shader.
+    - **Lighting:** It calculates Blinn-Phong lighting (ambient, diffuse, and specular components) based on the surface normal and the positions of the camera and a fixed light source. This gives the teapot its 3D appearance.
+    - **Color:** It calculates a procedural, animated tie-dye pattern using trigonometric functions and a `time` uniform that is updated every frame.
+    - The final pixel color is the result of multiplying the lighting value by the tie-dye color.
 
 This entire process repeats every frame, allowing for smooth animation and interaction.
 

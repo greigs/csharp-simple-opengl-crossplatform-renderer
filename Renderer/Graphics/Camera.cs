@@ -10,10 +10,11 @@ namespace Renderer.Graphics
         public float Pitch { get; private set; }
         public float Fov { get; set; } = 45f;
 
+        public Vector3 Position => CalculatePosition();
+
         public Matrix4 GetViewMatrix()
         {
-            var position = CalculatePosition();
-            return Matrix4.LookAt(position, Vector3.Zero, Vector3.UnitY);
+            return Matrix4.LookAt(Position, Vector3.Zero, Vector3.UnitY);
         }
 
         public Matrix4 GetProjectionMatrix(float aspectRatio)
