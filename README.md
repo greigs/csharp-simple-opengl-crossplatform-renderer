@@ -2,7 +2,7 @@
 
 # 3D Teapot Renderer
 
-This project is a simple 3D renderer built with C# and OpenTK. It displays the Stanford Teapot model, which can be rotated and zoomed using the mouse. The application is cross-platform and can be built for Windows, macOS (Intel), and macOS (Apple Silicon). The resulting packaged applications include .net 8.0 already embedded, so it should run even if .net is not installed.
+This project is a simple 3D renderer built with C# and OpenTK. It displays the Stanford Teapot model with an animated, lit, tie-dye pattern which can be rotated and zoomed using the mouse. The application is cross-platform and can be built for Windows, macOS (Intel), and macOS (Apple Silicon). The resulting packaged applications include .net 8.0 already embedded, so it should run even if .net is not installed.
 
 ![image](https://github.com/user-attachments/assets/57a9a757-c025-44a6-93a2-44b683e1ef83)
 
@@ -13,9 +13,9 @@ The renderer uses OpenTK, a C# wrapper for the OpenGL graphics API, to achieve h
 
 ### 1. Asset Loading & Normal Calculation
 - The `teapot.obj` model and the GLSL shader files are embedded directly into the application executable.
-- On startup, the `Model.cs` class parses the `.obj` file's vertices. Since the model file does not contain vertex normals (which are essential for lighting), they are calculated manually.
-- For each vertex, the normal is computed by averaging the surface normals of all the faces that share that vertex. This creates a smooth appearance.
-- The final vertex data, interleaved with positions and their corresponding calculated normals, is uploaded to the GPU into a Vertex Buffer Object (VBO). An Element Buffer Object (EBO) is also created to allow for efficient indexed drawing.
+- **Vertex Welding:** On startup, the `Model.cs` class parses the `.obj` file. The teapot model is defined in patches, resulting in duplicated vertices at the seams where patches meet. To create a smooth surface, these duplicate vertices are "welded" together by identifying points with identical positions and treating them as a single vertex.
+- **Normal Calculation:** Since the model file does not contain vertex normals (which are essential for lighting), they are calculated manually after welding. For each unique vertex, its normal is computed by averaging the surface normals of all the triangles that share that vertex. This process results in a smooth appearance and eliminates lighting seams.
+- The final unique vertex data, interleaved with positions and their corresponding calculated normals, is uploaded to the GPU into a Vertex Buffer Object (VBO). An Element Buffer Object (EBO) is also created to allow for efficient indexed drawing.
 
 ### 2. The Rendering Loop
 The application runs a continuous loop that performs the following steps for each frame:
