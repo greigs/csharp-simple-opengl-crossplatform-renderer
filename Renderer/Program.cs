@@ -1,16 +1,24 @@
+using OpenTK.Windowing.Desktop;
+using OpenTK.Mathematics;
+
 namespace Renderer;
 
-static class Program
+public static class Program
 {
     /// <summary>
     ///  The main entry point for the application.
     /// </summary>
-    [STAThread]
-    static void Main()
+    private static void Main()
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
-        ApplicationConfiguration.Initialize();
-        Application.Run(new Form1());
+        var nativeWindowSettings = new NativeWindowSettings()
+        {
+            ClientSize = new Vector2i(800, 600),
+            Title = "3D Renderer"
+        };
+
+        using (var game = new Game(GameWindowSettings.Default, nativeWindowSettings))
+        {
+            game.Run();
+        }
     }    
 }
