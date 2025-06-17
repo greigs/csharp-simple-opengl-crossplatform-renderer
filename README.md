@@ -1,6 +1,7 @@
 # 3D Teapot Renderer
 
 This project is a simple 3D renderer built with C# and OpenTK. It displays the Stanford Teapot model, which can be rotated and zoomed using the mouse. The application is cross-platform and can be built for Windows, macOS (Intel), and macOS (Apple Silicon).
+
 ![image](https://github.com/user-attachments/assets/731fae41-1283-4ed4-b8bb-045c1232eaec)
 
 ## How it Works
