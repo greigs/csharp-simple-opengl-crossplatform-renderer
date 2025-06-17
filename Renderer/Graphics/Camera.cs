@@ -23,8 +23,8 @@ namespace Renderer.Graphics
 
         public void Update(float deltaX, float deltaY, float sensitivity = 0.005f)
         {
-            Yaw += deltaX * sensitivity;
-            Pitch -= deltaY * sensitivity;
+            Yaw -= deltaX * sensitivity;
+            Pitch += deltaY * sensitivity;
 
             // Clamp pitch to avoid flipping
             if (Pitch > MathHelper.DegreesToRadians(89.0f))
