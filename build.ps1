@@ -7,7 +7,7 @@ $projectPath = "Renderer/Renderer.csproj"
 
 # --- Build for Windows (win-x64) ---
 Write-Host "Building for Windows (win-x64)..."
-dotnet publish $projectPath -r win-x64 -c Release
+dotnet publish $projectPath -r win-x64 -c Release --self-contained true /p:PublishSingleFile=true
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "Renderer/bin/Release/net6.0/win-x64/publish/Assets"
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "Renderer/bin/Release/net6.0/win-x64/publish/Shaders"
 
