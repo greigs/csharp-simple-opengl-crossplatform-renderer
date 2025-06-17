@@ -3,6 +3,30 @@
 This project is a simple 3D renderer built with C# and OpenTK. It displays the Stanford Teapot model, which can be rotated and zoomed using the mouse. The application is cross-platform and can be built for Windows, macOS (Intel), and macOS (Apple Silicon).
 ![image](https://github.com/user-attachments/assets/731fae41-1283-4ed4-b8bb-045c1232eaec)
 
+## How it Works
+
+The renderer uses OpenTK, a C# wrapper for the OpenGL graphics API, to achieve hardware-accelerated rendering. The core of the process involves a programmable pipeline using shaders.
+
+### 1. Asset Loading
+- The `teapot.obj` model and the GLSL shader files are embedded directly into the application executable.
+- On startup, the `Model.cs` class parses the `.obj` file's vertices and calculates the model's geometric center. This data is then uploaded to the GPU into a Vertex Buffer Object (VBO).
+
+### 2. The Rendering Loop
+The application runs a continuous loop that performs the following steps for each frame:
+
+#### a. Transformation (The MVP Matrix)
+The position of each vertex is transformed from its local model space into its final screen position using a series of matrix multiplications. This is known as the Model-View-Projection (MVP) matrix.
+- **Model Matrix:** This matrix first translates the teapot so its geometric center is at the world origin `(0,0,0)`, ensuring it rotates around its center.
+- **View Matrix:** This is controlled by the `Camera.cs` class, which implements an orbital camera. It positions the "viewer" at a certain distance and orientation from the world origin, making it look at the teapot. Mouse movements rotate the camera around the teapot, and the scroll wheel changes its distance.
+- **Projection Matrix:** This matrix applies perspective, making parts of the model that are further away appear smaller, which creates the illusion of depth.
+
+#### b. Shader Execution
+The MVP matrix and vertex data are passed to the shaders running on the GPU.
+- **`shader.vert` (Vertex Shader):** This program runs for every vertex in the model. Its primary job is to apply the MVP matrix transformation to each vertex's position.
+- **`shader.frag` (Fragment Shader):** After the vertices are transformed, this program runs for every pixel that the teapot covers on the screen. It determines the final color of the pixel. In this project, it's very simple: it just outputs a constant white color, giving the teapot its solid appearance.
+
+This entire process repeats every frame, allowing for smooth animation and interaction.
+
 ## Prerequisites
 
 *   [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) or later.
