@@ -18,6 +18,8 @@ namespace Renderer
         private Model model;
         private Camera camera;
 
+        private float rotationAngle = 0.0f;
+
         private bool firstMove = true;
         private Vector2 lastMousePosition;
 
@@ -75,7 +77,7 @@ namespace Renderer
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            var modelMatrix = Matrix4.CreateTranslation(-model.Center);
+            var modelMatrix = Matrix4.CreateRotationY(rotationAngle) * Matrix4.CreateTranslation(-model.Center);
 
             shader.Use();
             shader.SetMatrix4("model", modelMatrix);
@@ -91,6 +93,8 @@ namespace Renderer
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
+
+            rotationAngle += MathHelper.DegreesToRadians(15.0f) * (float)e.Time;
             
             if (MouseState.IsButtonDown(MouseButton.Left))
             {
