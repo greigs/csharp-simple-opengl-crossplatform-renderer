@@ -42,12 +42,8 @@ function Create-MacAppBundle {
     foreach ($file in $filesToRemove) {
         Remove-Item -Recurse -Force $file.FullName
     }
-
-    # Create a zip archive for distribution
-    $zipPath = "$publishDir/Renderer-$runtimeId.zip"
-    Compress-Archive -Path $appBundlePath -DestinationPath $zipPath -Force
     
-    Write-Host "Successfully created and zipped $appBundlePath"
+    Write-Host "Successfully created and cleaned $appBundlePath"
 }
 
 # --- Build for macOS (osx-x64) ---
@@ -61,6 +57,6 @@ dotnet publish $projectPath -r osx-arm64 -c Release --self-contained true
 Create-MacAppBundle -runtimeId "osx-arm64"
 
 Write-Host "Build process completed successfully."
-Write-Host "You can find the distributables in the 'Renderer/bin/Release/net6.0' directory."
+Write-Host "You can find the build artifacts in the 'Renderer/bin/Release/net6.0' directory."
 Write-Host "Windows: win-x64/publish"
-Write-Host "macOS: osx-x64/publish/Renderer-osx-x64.zip and osx-arm64/publish/Renderer-osx-arm64.zip" 
+Write-Host "macOS: osx-x64/publish/Renderer.app and osx-arm64/publish/Renderer.app" 
