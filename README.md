@@ -1,6 +1,6 @@
 [![.NET](https://github.com/greigs/csharp-opengl-crossplatform-renderer/actions/workflows/dotnet.yml/badge.svg)](https://github.com/greigs/csharp-opengl-crossplatform-renderer/actions/workflows/dotnet.yml)
 
-# 3D Teapot Renderer
+# Simple Cross-Platform OpenTK 3D Renderer
 
 This project is a simple 3D renderer built with C# and OpenTK. It displays the Stanford Teapot model with an animated, lit, tie-dye pattern which can be rotated and zoomed using the mouse. The application is cross-platform and can be built for Windows, macOS (Intel), and macOS (Apple Silicon). The resulting packaged applications include .net 8.0 already embedded, so it should run even if .net is not installed.
 
